@@ -1,11 +1,10 @@
-package com.ptmlb.ca.ahgroup.data.datasource;
+package com.ptmlb.ca.ahgroup.data.repository.datasource;
 
 import com.j256.ormlite.dao.Dao;
 import com.ptmlb.ca.ahgroup.data.cache.Cache;
 import com.ptmlb.ca.ahgroup.data.cache.list.ListCache;
 import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
-import com.ptmlb.ca.ahgroup.repository.datasource.LoginInfoPersistenceDataSource;
 
 import java.util.List;
 
@@ -21,9 +20,7 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
     private ListCache<LoginInfoEntity> listCache;
 
     public LoginInfoPersistenceDataSourceImpl(Dao<LoginInfoEntity, String> dao, Cache<LoginInfoEntity> cache, ListCache<LoginInfoEntity> listCache) {
-        this.dao = dao;
-        this.cache = cache;
-        this.listCache = listCache;
+
     }
 
     @Override

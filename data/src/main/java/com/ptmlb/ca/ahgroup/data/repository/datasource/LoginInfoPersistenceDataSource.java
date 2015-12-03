@@ -1,11 +1,11 @@
-package com.ptmlb.ca.ahgroup.repository.datasource;
+package com.ptmlb.ca.ahgroup.data.repository.datasource;
 
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 
 import java.util.List;
 
 /**
- * Created by Administrator on 2015/12/1.
+ * Created by Administrator on 2015/12/3.
  *
  */
 
