@@ -1,14 +1,15 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion parent.ext.compileSdkVersion
+    buildToolsVersion parent.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion parent.ext.minSdkVersion
+        targetSdkVersion parent.ext.targetSdkVersion
+        versionCode parent.ext.versionCode
+        versionName parent.ext.versionName
     }
     buildTypes {
         release {
@@ -20,8 +21,21 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.j256.ormlite:ormlite-android:4.48'
+
+    compile rootProject.ext.dependencies.androidSupportV7
+    compile rootProject.ext.dependencies.dagger
+    apt rootProject.ext.dependencies.daggerCompiler
+    provided rootProject.ext.dependencies.javaxAnnotation
+    compile rootProject.ext.dependencies.rxJava
+    compile rootProject.ext.dependencies.rxAndroid
+    compile rootProject.ext.dependencies.ormlite
+    compile rootProject.ext.dependencies.retrofit
+    compile rootProject.ext.dependencies.retrofitGsonConverter
+    compile rootProject.ext.dependencies.transformer
+    provided rootProject.ext.dependencies.transformerCompiler
+
     compile project(':domain')
+
+    testCompile rootProject.ext.testDependencies.junit
+    testCompile rootProject.ext.testDependencies.mockito
 }

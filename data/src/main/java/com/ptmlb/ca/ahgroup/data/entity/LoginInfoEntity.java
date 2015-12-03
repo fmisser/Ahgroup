@@ -2,7 +2,10 @@ package com.ptmlb.ca.ahgroup.data.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import com.mobandme.android.transformer.compiler.Mappable;
+import com.mobandme.android.transformer.compiler.Mapped;
 import com.ptmlb.ca.ahgroup.data.cache.ttl.TtlCacheObject;
+import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 
 import java.util.Date;
 
@@ -11,18 +14,23 @@ import java.util.Date;
  *
  */
 
+@Mappable(with = LoginInfo.class)
 @DatabaseTable(tableName = "tb_login_info")
 public class LoginInfoEntity implements TtlCacheObject {
 
+    @Mapped
     @DatabaseField(id = true)
     public String account;
 
+    @Mapped
     @DatabaseField
     public String password;
 
+    @Mapped
     @DatabaseField
     public String accessToken;
 
+    @Mapped
     @DatabaseField
     public Date lastLoginDate;
 

@@ -1,5 +1,10 @@
 package com.ptmlb.ca.ahgroup.data.repository.datasource;
 
+import com.ptmlb.ca.ahgroup.data.exception.DeletePersistenceDataException;
+import com.ptmlb.ca.ahgroup.data.exception.GetPersistenceDataException;
+import com.ptmlb.ca.ahgroup.data.exception.InvalidPersistenceDataException;
+import com.ptmlb.ca.ahgroup.data.exception.PersistDataException;
+import com.ptmlb.ca.ahgroup.data.exception.UnknownPersistenceException;
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 
 import java.util.List;
@@ -10,6 +15,12 @@ import java.util.List;
  */
 
 public interface LoginInfoPersistenceDataSource {
-    public List<LoginInfo> getLoginInfoList();
-    public int save(LoginInfo loginInfo);
+    public List<LoginInfo> getLoginInfoList()
+            throws GetPersistenceDataException, InvalidPersistenceDataException, UnknownPersistenceException;
+
+    public int save(LoginInfo loginInfo)
+            throws PersistDataException, UnknownPersistenceException;
+
+    public int delete(List<LoginInfo> loginInfoList)
+            throws DeletePersistenceDataException, UnknownPersistenceException;
 }
