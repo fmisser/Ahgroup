@@ -1,6 +1,8 @@
 package com.ptmlb.ca.ahgroup.domain.repository;
 
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
+import com.ptmlb.ca.ahgroup.domain.exception.GetDataException;
+import com.ptmlb.ca.ahgroup.domain.exception.SaveDataException;
 
 import java.util.List;
 
@@ -10,6 +12,6 @@ import java.util.List;
  */
 
 public interface LoginInfoRepository {
-    public List<LoginInfo> getLoginInfoList();
-    public int save(LoginInfo loginInfo);
+    public List<LoginInfo> getLoginInfoList() throws GetDataException;
+    public int save(LoginInfo loginInfo) throws SaveDataException;
 }

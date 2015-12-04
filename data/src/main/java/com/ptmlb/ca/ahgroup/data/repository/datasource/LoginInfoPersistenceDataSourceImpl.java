@@ -57,13 +57,32 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
 
     @Override
     public int save(LoginInfo loginInfo) throws PersistDataException, UnknownPersistenceException {
-        return 0;
+
+        LoginInfoEntity entity = transformer.transform(loginInfo, LoginInfoEntity.class);
+        entity.setPersistedTime(System.currentTimeMillis());
+        try {
+            return dao.create(entity);
+        } catch (SQLException e) {
+            throw new PersistDataException();
+        } catch (Exception e) {
+            throw new UnknownPersistenceException();
+        }
     }
 
     @Override
     public int delete(List<LoginInfo> loginInfoList) throws DeletePersistenceDataException, UnknownPersistenceException {
 
-        return 0;
+        List<String> deleteAccounts = new ArrayList<>();
+        for (LoginInfo loginInfo : loginInfoList) {
+            deleteAccounts.add(loginInfo.getAccount());
+        }
+        try {
+            return internalDeleteLoginInfoEntities(deleteAccounts);
+        } catch (SQLException e) {
+            throw new DeletePersistenceDataException();
+        } catch (Exception e) {
+            throw new UnknownPersistenceException();
+        }
     }
 
     private int deleteLoginInfoEntities(List<LoginInfoEntity> entities) throws SQLException {
