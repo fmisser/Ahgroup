@@ -11,6 +11,12 @@ android {
         versionCode parent.ext.versionCode
         versionName parent.ext.versionName
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -34,8 +40,8 @@ dependencies {
     compile rootProject.ext.dependencies.transformer
     provided rootProject.ext.dependencies.transformerCompiler
 
-    compile project(':domain')
-
     testCompile rootProject.ext.testDependencies.junit
     testCompile rootProject.ext.testDependencies.mockito
+
+    compile project(':domain')
 }
