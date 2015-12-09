@@ -5,13 +5,18 @@ import com.ptmlb.ca.ahgroup.data.cache.Cache;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * Created by Administrator on 2015/12/1.
+ *
  */
+
 public class ListCache<T> implements Cache<List<T>> {
 
     private final Cache<T> cache;
 
+    @Inject
     public ListCache(Cache<T> cache) {
         this.cache = cache;
     }

@@ -6,6 +6,8 @@ import com.ptmlb.ca.ahgroup.domain.executor.JobExecutor;
 import com.ptmlb.ca.ahgroup.domain.executor.PostExecutionThread;
 import com.ptmlb.ca.ahgroup.domain.repository.LoginInfoRepository;
 
+import javax.inject.Inject;
+
 import rx.Observable;
 import rx.Subscriber;
 
@@ -17,9 +19,11 @@ public class SaveLoginInfoInteractor extends Interactor {
     private LoginInfoRepository repository;
     private LoginInfo loginInfo;
 
+    @Inject
     public SaveLoginInfoInteractor(JobExecutor jobExecutor, PostExecutionThread postExecutionThread, LoginInfoRepository repository, LoginInfo loginInfo) {
         super(jobExecutor, postExecutionThread);
         this.repository = repository;
+        this.loginInfo = loginInfo;
     }
 
     @Override
@@ -39,7 +43,6 @@ public class SaveLoginInfoInteractor extends Interactor {
                 } catch (SaveDataException e) {
                     subscriber.onError(e);
                 }
-
             }
         });
     }

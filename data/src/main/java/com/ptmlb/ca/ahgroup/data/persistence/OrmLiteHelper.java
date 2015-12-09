@@ -11,17 +11,21 @@ import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
 
 import java.sql.SQLException;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * Created by Administrator on 2015/12/1.
  *
  */
 
+@Singleton
 public class OrmLiteHelper extends OrmLiteSqliteOpenHelper {
 
     public static String DB_NAME = "NewWorker.db";
     public static int DB_VERSION = 1;
 
-    //@Inject
+    @Inject
     public OrmLiteHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
@@ -70,7 +74,12 @@ public class OrmLiteHelper extends OrmLiteSqliteOpenHelper {
         }
     }
 
-    public Dao<LoginInfoEntity, String> getLoginInfoDao() throws SQLException {
-        return getDao(LoginInfoEntity.class);
+    public Dao<LoginInfoEntity, String> getLoginInfoDao() {
+        try {
+            return getDao(LoginInfoEntity.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

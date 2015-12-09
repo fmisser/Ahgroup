@@ -12,13 +12,19 @@ import com.ptmlb.ca.ahgroup.domain.repository.LoginInfoRepository;
 
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * Created by Administrator on 2015/12/3.
  */
+
+@Singleton
 public class LoginInfoRepositoryImpl implements LoginInfoRepository {
 
     LoginInfoPersistenceDataSource persistenceDataSource;
 
+    @Inject
     public LoginInfoRepositoryImpl(LoginInfoPersistenceDataSource persistenceDataSource) {
         this.persistenceDataSource = persistenceDataSource;
     }

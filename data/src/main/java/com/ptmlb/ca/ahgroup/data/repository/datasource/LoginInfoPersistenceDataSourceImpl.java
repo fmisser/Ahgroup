@@ -17,11 +17,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * Created by Administrator on 2015/12/1.
  *
  */
 
+@Singleton
 public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceDataSource {
 
     private Dao<LoginInfoEntity, String> dao;
@@ -29,6 +33,7 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
     private ListCache<LoginInfoEntity> listCache;
     private static final Transformer transformer = new Transformer.Builder().build(LoginInfoEntity.class);
 
+    @Inject
     public LoginInfoPersistenceDataSourceImpl(Dao<LoginInfoEntity, String> dao, Cache<LoginInfoEntity> cache, ListCache<LoginInfoEntity> listCache) {
         this.dao = dao;
         this.cache = cache;
