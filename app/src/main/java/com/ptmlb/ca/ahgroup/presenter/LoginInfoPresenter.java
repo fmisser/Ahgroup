@@ -1,10 +1,10 @@
 package com.ptmlb.ca.ahgroup.presenter;
 
-
-import com.mobandme.android.transformer.Transformer;
+import com.ptmlb.ca.ahgroup.di.scope.ActivityScope;
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 import com.ptmlb.ca.ahgroup.domain.interactor.Interactor;
 import com.ptmlb.ca.ahgroup.model.LoginInfoModel;
+import com.ptmlb.ca.ahgroup.model.mapper.LoginInfoModelMapper;
 import com.ptmlb.ca.ahgroup.view.LoginInfoView;
 
 import java.util.ArrayList;
@@ -15,13 +15,14 @@ import rx.Subscriber;
 /**
  * Created by Administrator on 2015/12/8.
  */
+
 public class LoginInfoPresenter implements Presenter {
 
     private LoginInfoView view;
     private Interactor interactor;
-    private static final Transformer transformer = new Transformer.Builder().build(LoginInfoModel.class);
+    private LoginInfoModelMapper mapper;
 
-    public LoginInfoPresenter(Interactor interactor) {
+    public LoginInfoPresenter(Interactor interactor, LoginInfoModelMapper mapper) {
         this.interactor = interactor;
     }
 
@@ -62,7 +63,7 @@ public class LoginInfoPresenter implements Presenter {
             public void onNext(List<LoginInfo> o) {
                 List<LoginInfoModel> models = new ArrayList<LoginInfoModel>();
                 for (LoginInfo loginInfo : o) {
-                    models.add(LoginInfoPresenter.this.transformer.transform(loginInfo, LoginInfoModel.class));
+                    models.add(LoginInfoPresenter.this.mapper.transform(loginInfo));
                 }
                 LoginInfoPresenter.this.view.update(models);
             }

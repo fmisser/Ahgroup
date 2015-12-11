@@ -30,8 +30,8 @@ public abstract class Interactor {
     @SuppressWarnings("unchecked")
     public void execute(Subscriber subscriber) {
         this.subscription = buildObservable()
-                .observeOn(Schedulers.from(jobExecutor))
-                .subscribeOn(postExecutionThread.getScheduler())
+                .observeOn(postExecutionThread.getScheduler())
+                .subscribeOn(Schedulers.from(jobExecutor))
                 .subscribe(subscriber);
     }
 

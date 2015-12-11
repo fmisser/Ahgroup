@@ -14,15 +14,19 @@ import rx.Subscriber;
 /**
  * Created by Administrator on 2015/12/8.
  */
+
 public class SaveLoginInfoInteractor extends Interactor {
 
     private LoginInfoRepository repository;
     private LoginInfo loginInfo;
 
     @Inject
-    public SaveLoginInfoInteractor(JobExecutor jobExecutor, PostExecutionThread postExecutionThread, LoginInfoRepository repository, LoginInfo loginInfo) {
+    public SaveLoginInfoInteractor(JobExecutor jobExecutor, PostExecutionThread postExecutionThread, LoginInfoRepository repository) {
         super(jobExecutor, postExecutionThread);
         this.repository = repository;
+    }
+
+    public void setLoginInfo(LoginInfo loginInfo) {
         this.loginInfo = loginInfo;
     }
 
@@ -31,7 +35,6 @@ public class SaveLoginInfoInteractor extends Interactor {
         return Observable.create(new Observable.OnSubscribe<LoginInfo>() {
             @Override
             public void call(Subscriber<? super LoginInfo> subscriber) {
-
                 try {
                     int ret = repository.save(loginInfo);
                     if (ret == 1) {

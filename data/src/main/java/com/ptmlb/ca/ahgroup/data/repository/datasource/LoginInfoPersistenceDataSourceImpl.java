@@ -2,10 +2,10 @@ package com.ptmlb.ca.ahgroup.data.repository.datasource;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.DeleteBuilder;
-import com.mobandme.android.transformer.Transformer;
 import com.ptmlb.ca.ahgroup.data.cache.Cache;
 import com.ptmlb.ca.ahgroup.data.cache.list.ListCache;
 import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
+import com.ptmlb.ca.ahgroup.data.entity.mapper.LoginInfoEntityMapper;
 import com.ptmlb.ca.ahgroup.data.exception.DeletePersistenceDataException;
 import com.ptmlb.ca.ahgroup.data.exception.GetPersistenceDataException;
 import com.ptmlb.ca.ahgroup.data.exception.InvalidPersistenceDataException;
@@ -31,13 +31,14 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
     private Dao<LoginInfoEntity, String> dao;
     private Cache<LoginInfoEntity> cache;
     private ListCache<LoginInfoEntity> listCache;
-    private static final Transformer transformer = new Transformer.Builder().build(LoginInfoEntity.class);
+    private LoginInfoEntityMapper mapper;
 
     @Inject
-    public LoginInfoPersistenceDataSourceImpl(Dao<LoginInfoEntity, String> dao, Cache<LoginInfoEntity> cache, ListCache<LoginInfoEntity> listCache) {
+    public LoginInfoPersistenceDataSourceImpl(Dao<LoginInfoEntity, String> dao, Cache<LoginInfoEntity> cache, ListCache<LoginInfoEntity> listCache, LoginInfoEntityMapper mapper) {
         this.dao = dao;
         this.cache = cache;
         this.listCache = listCache;
+        this.mapper = mapper;
     }
 
     @Override
@@ -50,7 +51,7 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
             }
             List<LoginInfo> loginInfoList = new ArrayList<>();
             for (LoginInfoEntity entity : entities) {
-                loginInfoList.add(transformer.transform(entity, LoginInfo.class));
+                loginInfoList.add(mapper.transform(entity));
             }
             return loginInfoList;
         } catch (SQLException e) {
@@ -63,10 +64,14 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
     @Override
     public int save(LoginInfo loginInfo) throws PersistDataException, UnknownPersistenceException {
 
-        LoginInfoEntity entity = transformer.transform(loginInfo, LoginInfoEntity.class);
+        LoginInfoEntity entity = mapper.transform(loginInfo);
         entity.setPersistedTime(System.currentTimeMillis());
         try {
-            return dao.create(entity);
+            if (dao.idExists(entity.account)) {
+                return dao.update(entity);
+            } else {
+                return dao.create(entity);
+            }
         } catch (SQLException e) {
             throw new PersistDataException();
         } catch (Exception e) {

@@ -1,28 +1,19 @@
 package com.ptmlb.ca.ahgroup.model;
 
-import com.mobandme.android.transformer.compiler.Mappable;
-import com.mobandme.android.transformer.compiler.Mapped;
-import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
-
 import java.util.Date;
 
 /**
  * Created by Administrator on 2015/12/4.
  */
 
-@Mappable(with = LoginInfo.class)
 public class LoginInfoModel {
 
-    @Mapped
     public String account;
 
-    @Mapped
     public String password;
 
-    @Mapped
     public String accessToken;
 
-    @Mapped
     public Date lastLoginDate;
 
     public String getAccount() {

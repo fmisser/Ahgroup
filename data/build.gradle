@@ -10,6 +10,10 @@ android {
         targetSdkVersion parent.ext.targetSdkVersion
         versionCode parent.ext.versionCode
         versionName parent.ext.versionName
+
+        //ormlite db config
+        buildConfigField "String", "DB_NAME", "\"ahgroup.db\""
+        buildConfigField "int", "DB_VERSION", "1"
     }
 
     compileOptions {
@@ -37,8 +41,6 @@ dependencies {
     compile rootProject.ext.dependencies.ormlite
     compile rootProject.ext.dependencies.retrofit
     compile rootProject.ext.dependencies.retrofitGsonConverter
-    compile rootProject.ext.dependencies.transformer
-    provided rootProject.ext.dependencies.transformerCompiler
 
     testCompile rootProject.ext.testDependencies.junit
     testCompile rootProject.ext.testDependencies.mockito

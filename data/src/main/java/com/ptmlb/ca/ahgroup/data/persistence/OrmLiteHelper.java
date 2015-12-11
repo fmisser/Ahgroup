@@ -7,6 +7,7 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import com.ptmlb.ca.ahgroup.data.BuildConfig;
 import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
 
 import java.sql.SQLException;
@@ -22,12 +23,9 @@ import javax.inject.Singleton;
 @Singleton
 public class OrmLiteHelper extends OrmLiteSqliteOpenHelper {
 
-    public static String DB_NAME = "NewWorker.db";
-    public static int DB_VERSION = 1;
-
     @Inject
     public OrmLiteHelper(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
+        super(context, BuildConfig.DB_NAME, null, BuildConfig.DB_VERSION);
     }
 
     /**
