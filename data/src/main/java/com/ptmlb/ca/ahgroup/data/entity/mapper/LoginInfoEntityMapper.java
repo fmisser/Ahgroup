@@ -3,6 +3,9 @@ package com.ptmlb.ca.ahgroup.data.entity.mapper;
 import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -30,7 +33,21 @@ public class LoginInfoEntityMapper {
         return loginInfo;
     }
 
-    public LoginInfoEntity transform(LoginInfo loginInfo) {
+    public List<LoginInfo> transformList(List<LoginInfoEntity> entities) {
+        List<LoginInfo> loginInfoList = new ArrayList<>();
+
+        LoginInfo loginInfo;
+        for (LoginInfoEntity entity : entities) {
+            loginInfo = transform(entity);
+            if (loginInfo != null) {
+                loginInfoList.add(loginInfo);
+            }
+        }
+
+        return loginInfoList;
+    }
+
+    public LoginInfoEntity transformToEntity(LoginInfo loginInfo) {
         LoginInfoEntity entity = null;
         if (loginInfo != null) {
             entity = new LoginInfoEntity();
@@ -40,5 +57,18 @@ public class LoginInfoEntityMapper {
             entity.setAccessToken(loginInfo.getAccessToken());
         }
         return entity;
+    }
+
+    public List<LoginInfoEntity> transformToEntityList(List<LoginInfo> loginInfoList) {
+        List<LoginInfoEntity> entities = new ArrayList<>();
+        LoginInfoEntity entity;
+        for (LoginInfo loginInfo : loginInfoList) {
+            entity = transformToEntity(loginInfo);
+            if (entity != null) {
+                entities.add(entity);
+            }
+        }
+
+        return entities;
     }
 }

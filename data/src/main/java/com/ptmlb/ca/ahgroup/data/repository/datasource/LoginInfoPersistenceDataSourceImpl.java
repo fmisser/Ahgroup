@@ -64,7 +64,7 @@ public class LoginInfoPersistenceDataSourceImpl implements LoginInfoPersistenceD
     @Override
     public int save(LoginInfo loginInfo) throws PersistDataException, UnknownPersistenceException {
 
-        LoginInfoEntity entity = mapper.transform(loginInfo);
+        LoginInfoEntity entity = mapper.transformToEntity(loginInfo);
         entity.setPersistedTime(System.currentTimeMillis());
         try {
             if (dao.idExists(entity.account)) {
