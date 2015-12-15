@@ -3,8 +3,6 @@ package com.ptmlb.ca.ahgroup.data.cache.list;
 import com.ptmlb.ca.ahgroup.data.cache.Cache;
 import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Created by Administrator on 2015/12/14.
+ *
  */
 
 public class ListCacheTest {
@@ -30,21 +29,17 @@ public class ListCacheTest {
     @Mock
     private Cache<LoginInfoEntity> mockCache;
 
-    ListCache listCache;
+    private ListCache listCache;
 
     @Before
     public void setUp() throws Exception {
 
         MockitoAnnotations.initMocks(this);
-        listCache = new ListCache<LoginInfoEntity>(mockCache);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
+        listCache = new ListCache<>(mockCache);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testIsValid() throws Exception {
 
         LoginInfoEntity mockEntity1 = mock(LoginInfoEntity.class);
@@ -58,10 +53,10 @@ public class ListCacheTest {
 
         assertThat(listCache.isValid(entities), is(true));
         verify(mockCache, times(2)).isValid(any(LoginInfoEntity.class));
-
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testInvalidList() throws Exception {
 
         LoginInfoEntity mockEntity1 = mock(LoginInfoEntity.class);
@@ -73,7 +68,6 @@ public class ListCacheTest {
         given(mockCache.isValid(mockEntity1)).willReturn(true);
         given(mockCache.isValid(mockEntity2)).willReturn(false);
 
-        List<LoginInfoEntity> invalidList = listCache.invalidList(entities);
         assertThat(listCache.invalidList(entities).size(), is(1));
     }
 }

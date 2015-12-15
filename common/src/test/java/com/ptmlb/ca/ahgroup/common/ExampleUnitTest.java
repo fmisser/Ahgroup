@@ -1,5 +1,7 @@
 package com.ptmlb.ca.ahgroup.common;
 
+import com.ptmlb.ca.ahgroup.common.aop.DebugTrace;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;

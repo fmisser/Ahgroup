@@ -3,7 +3,6 @@ package com.ptmlb.ca.ahgroup.data.entity.mapper;
 import com.ptmlb.ca.ahgroup.data.entity.LoginInfoEntity;
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,24 +19,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by Administrator on 2015/12/14.
+ *
  */
+
 public class LoginInfoEntityMapperTest {
 
-    private static String Fake_Account = "18058159956";
-    private static String Fake_Password = "123456";
-    private static String Fake_AccessToken = "654321";
-    private static Date Fake_CurrentData = new Date();
+    private static final String Fake_Account = "18058159956";
+    private static final String Fake_Password = "123456";
+    private static final String Fake_AccessToken = "654321";
+    private static final Date Fake_CurrentData = new Date();
 
     private LoginInfoEntityMapper mapper;
 
     @Before
     public void setUp() throws Exception {
         mapper = new LoginInfoEntityMapper();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
     }
 
     @Test
