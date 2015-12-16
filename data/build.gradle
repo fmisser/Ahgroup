@@ -14,6 +14,11 @@ android {
         //ormlite db config
         buildConfigField "String", "DB_NAME", "\"ahgroup.db\""
         buildConfigField "int", "DB_VERSION", "1"
+
+        //api
+        buildConfigField "String", "API_BASE_URL", "\"http://capi.zhujiash.com/v6/\""
+        buildConfigField "long", "DEFAULT_CONNECTION_TIMEOUT_SEC", "30"
+        buildConfigField "long", "DEFAULT_READ_TIMEOUT_SEC", "30"
     }
 
     compileOptions {
