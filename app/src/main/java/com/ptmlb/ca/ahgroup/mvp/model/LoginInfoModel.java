@@ -1,4 +1,4 @@
-package com.ptmlb.ca.ahgroup.model;
+package com.ptmlb.ca.ahgroup.mvp.model;
 
 import java.util.Date;
 

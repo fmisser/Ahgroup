@@ -1,11 +1,10 @@
-package com.ptmlb.ca.ahgroup.presenter;
+package com.ptmlb.ca.ahgroup.mvp.presenter;
 
-import com.ptmlb.ca.ahgroup.di.scope.ActivityScope;
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
 import com.ptmlb.ca.ahgroup.domain.interactor.Interactor;
-import com.ptmlb.ca.ahgroup.model.LoginInfoModel;
-import com.ptmlb.ca.ahgroup.model.mapper.LoginInfoModelMapper;
-import com.ptmlb.ca.ahgroup.view.LoginInfoView;
+import com.ptmlb.ca.ahgroup.mvp.model.LoginInfoModel;
+import com.ptmlb.ca.ahgroup.mvp.model.mapper.LoginInfoModelMapper;
+import com.ptmlb.ca.ahgroup.mvp.view.LoginInfoView;
 
 import java.util.ArrayList;
 import java.util.List;

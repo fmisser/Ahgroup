@@ -13,7 +13,7 @@ import com.ptmlb.ca.ahgroup.di.module.ApplicationModule;
 import com.ptmlb.ca.ahgroup.domain.executor.JobExecutor;
 import com.ptmlb.ca.ahgroup.domain.executor.PostExecutionThread;
 import com.ptmlb.ca.ahgroup.domain.repository.LoginInfoRepository;
-import com.ptmlb.ca.ahgroup.model.mapper.LoginInfoModelMapper;
+import com.ptmlb.ca.ahgroup.mvp.model.mapper.LoginInfoModelMapper;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -22,6 +22,7 @@ import dagger.Component;
 
 /**
  * Created by Administrator on 2015/12/9.
+ *
  */
 
 @Singleton

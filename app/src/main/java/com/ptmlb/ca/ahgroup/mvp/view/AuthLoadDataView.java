@@ -1,4 +1,4 @@
-package com.ptmlb.ca.ahgroup.view;
+package com.ptmlb.ca.ahgroup.mvp.view;
 
 /**
  * Created by Administrator on 2015/12/9.

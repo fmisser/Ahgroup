@@ -21,7 +21,7 @@ import com.ptmlb.ca.ahgroup.domain.executor.JobExecutor;
 import com.ptmlb.ca.ahgroup.domain.executor.PostExecutionThread;
 import com.ptmlb.ca.ahgroup.domain.repository.LoginInfoRepository;
 import com.ptmlb.ca.ahgroup.executor.PostExecutionThreadImpl;
-import com.ptmlb.ca.ahgroup.model.mapper.LoginInfoModelMapper;
+import com.ptmlb.ca.ahgroup.mvp.model.mapper.LoginInfoModelMapper;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;

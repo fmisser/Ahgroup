@@ -48,4 +48,5 @@ dependencies {
     testCompile rootProject.ext.testDependencies.junit
     compile project(':domain')
     compile project(':data')
+    compile project(':common')
 }

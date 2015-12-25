@@ -1,4 +1,4 @@
-package com.ptmlb.ca.ahgroup.view;
+package com.ptmlb.ca.ahgroup.mvp.view;
 
 import android.content.Context;
 

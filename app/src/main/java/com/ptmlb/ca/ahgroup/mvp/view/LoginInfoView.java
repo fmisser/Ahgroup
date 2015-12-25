@@ -1,6 +1,6 @@
-package com.ptmlb.ca.ahgroup.view;
+package com.ptmlb.ca.ahgroup.mvp.view;
 
-import com.ptmlb.ca.ahgroup.model.LoginInfoModel;
+import com.ptmlb.ca.ahgroup.mvp.model.LoginInfoModel;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.ptmlb.ca.ahgroup.presenter;
+package com.ptmlb.ca.ahgroup.mvp.presenter;
 
 /**
  * Created by Administrator on 2015/12/4.

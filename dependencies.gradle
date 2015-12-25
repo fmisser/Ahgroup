@@ -13,7 +13,7 @@ allprojects {
                 retrofitRxJavaAdapter   :   'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2',
                 ormlite                 :   'com.j256.ormlite:ormlite-android:4.48',
                 aspectJ                 :   'org.aspectj:aspectjrt:1.8.7',
-                eventBus                :   'de.greenrobot:eventbus:3.0.0-beta1'
+                eventBus                :   'de.greenrobot:eventbus:3.0.0-beta1',
         ]
 
         testDependencies = [

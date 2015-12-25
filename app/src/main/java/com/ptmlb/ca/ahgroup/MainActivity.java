@@ -14,9 +14,9 @@ import android.widget.Toast;
 import com.ptmlb.ca.ahgroup.di.component.DaggerLoginInfoComponent;
 import com.ptmlb.ca.ahgroup.di.component.LoginInfoComponent;
 import com.ptmlb.ca.ahgroup.di.module.ActivityModule;
-import com.ptmlb.ca.ahgroup.model.LoginInfoModel;
-import com.ptmlb.ca.ahgroup.presenter.SaveLoginInfoPresenter;
-import com.ptmlb.ca.ahgroup.view.SaveLoginInfoView;
+import com.ptmlb.ca.ahgroup.mvp.model.LoginInfoModel;
+import com.ptmlb.ca.ahgroup.mvp.presenter.SaveLoginInfoPresenter;
+import com.ptmlb.ca.ahgroup.mvp.view.SaveLoginInfoView;
 
 import java.util.Date;
 

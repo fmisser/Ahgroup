@@ -1,7 +1,7 @@
-package com.ptmlb.ca.ahgroup.model.mapper;
+package com.ptmlb.ca.ahgroup.mvp.model.mapper;
 
 import com.ptmlb.ca.ahgroup.domain.entity.LoginInfo;
-import com.ptmlb.ca.ahgroup.model.LoginInfoModel;
+import com.ptmlb.ca.ahgroup.mvp.model.LoginInfoModel;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
