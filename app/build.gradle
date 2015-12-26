@@ -49,4 +49,7 @@ dependencies {
     compile project(':domain')
     compile project(':data')
     compile project(':common')
+
+    compile 'com.flipboard:bottomsheet-core:1.5.0'
+    compile 'com.flipboard:bottomsheet-commons:1.5.0' // optional
 }
