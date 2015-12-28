@@ -23,6 +23,6 @@ public class MaterialActivity extends AppCompatActivity {
 
         CollapsingToolbarLayout collapsingToolbarLayout =
                 (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar_layout);
-        collapsingToolbarLayout.setTitle("详情界面");
+        collapsingToolbarLayout.setTitle("详情");
     }
 }
