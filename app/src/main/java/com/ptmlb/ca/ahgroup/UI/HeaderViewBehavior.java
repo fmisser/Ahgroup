@@ -7,6 +7,7 @@ import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
+import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -24,16 +25,20 @@ import android.view.animation.OvershootInterpolator;
 
 public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
 
-    private static final float DEFAULT_TENSION = 0.8f;
+    private static final float DEFAULT_TENSION = 0.5f;
+    private static final long DEFAULT_ANIMATION_TIME = 400;
     private static final Interpolator FASTOUTSLOWIN_INTERPOLATOR = new FastOutSlowInInterpolator();
     private static final Interpolator BOUNCE_INTERPOLATOR = new BounceInterpolator();
     private static final Interpolator ANTICIPATEOVERSHOOT_INTERPOLATOR = new AnticipateOvershootInterpolator();
     private Interpolator OverShootInterpolator = new OvershootInterpolator(DEFAULT_TENSION);
     private float tension = DEFAULT_TENSION;
+    private long animation_time = DEFAULT_ANIMATION_TIME;
+    private float animation_distance = 0.0f;
     private boolean scrollUp;
     private float totalY = 0.0f;
     private boolean autoUp = false;
     private boolean autoDown = false;
+
 
     private View child;
     private View target;
@@ -58,8 +63,19 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
 //    }
 
     private float createTensionFromFlingVelocity(final float velocity) {
-        float denominator = 1200.0f;
+        float denominator = 1500.0f;
         return Math.abs(velocity) / denominator;
+    }
+
+    private long createAnimationTimeFromFlingVelocity(final float velocity) {
+        long time = (long)(animation_distance / Math.abs(velocity)) * 1000;
+        if (time == 0 ) {
+            time = 100;
+        }
+        if (time > DEFAULT_ANIMATION_TIME) {
+            time = DEFAULT_ANIMATION_TIME;
+        }
+        return time;
     }
 
     @Override
@@ -69,6 +85,7 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
         if (tension > DEFAULT_TENSION) {
             OverShootInterpolator = new OvershootInterpolator(tension);
         }
+        animation_time = createAnimationTimeFromFlingVelocity(velocityY);
         return super.onNestedFling(coordinatorLayout, child, target, velocityX, velocityX, consumed);
     }
 
@@ -85,22 +102,31 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
             OverShootInterpolator = new OvershootInterpolator(tension);
         }
 
+        if (animation_time != DEFAULT_ANIMATION_TIME) {
+            animation_time = DEFAULT_ANIMATION_TIME;
+        }
+
         if (autoUp || autoDown) {
             return;
         }
 
+        totalY += dy;
+
         if (dy >= 0) {
             scrollUp = true;
+            animation_distance = child.getHeight() - totalY;
         } else {
             scrollUp = false;
+            animation_distance = totalY;
         }
 
-        totalY += dy;
         move(child, target);
     }
 
     @Override
     public void onStopNestedScroll(CoordinatorLayout coordinatorLayout, View child, View target) {
+
+        Log.d("onStopNestedScroll", "stop scroll");
 
         if (autoUp || autoDown) {
             return;
@@ -163,12 +189,12 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
         animatorChild = child.animate()
                 .translationY(-child.getHeight() / 2)
                 .setInterpolator(OverShootInterpolator)
-                .setDuration(300);
+                .setDuration(animation_time);
 
         animatorTarget = target.animate()
                 .translationY(-child.getHeight())
                 .setInterpolator(OverShootInterpolator)
-                .setDuration(300);
+                .setDuration(animation_time);
 
         animatorChild.withStartAction(animateRunnable);
         animatorChild.withEndAction(animateEndRunnable);
@@ -205,12 +231,12 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
         animatorChild = child.animate()
                 .translationY(0)
                 .setInterpolator(OverShootInterpolator)
-                .setDuration(300);
+                .setDuration(animation_time);
 
         animatorTarget = target.animate()
                 .translationY(0)
                 .setInterpolator(OverShootInterpolator)
-                .setDuration(300);
+                .setDuration(animation_time);
 
         animatorChild.withStartAction(animateRunnable);
         animatorChild.withEndAction(animateEndRunnable);

@@ -8,68 +8,63 @@
     android:layout_height="match_parent"
     tools:context="com.ptmlb.ca.ahgroup.ui.CoordinatorActivity">
 
-    <LinearLayout
-        android:id="@+id/collapsing_layout"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="56dp"
-        android:orientation="vertical"
-        android:scaleType="centerCrop"
-        android:fitsSystemWindows="true"
-        app:layout_collapseMode="parallax"
-        app:layout_behavior="com.ptmlb.ca.ahgroup.ui.HeaderViewBehavior">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/headerview"
-            />
-    </LinearLayout>
-
-    <android.support.v4.widget.NestedScrollView
+    <android.support.v4.view.ViewPager
+        android:id="@+id/view_pager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="356dp"
-            android:orientation="vertical">
-
-            <android.support.design.widget.TabLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/tabbar">
-            </android.support.design.widget.TabLayout>
-
-            <android.support.v4.view.ViewPager
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <!--<android.support.v7.widget.RecyclerView-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_marginTop="256dp">-->
-
-                <!--</android.support.v7.widget.RecyclerView>-->
-
-            </android.support.v4.view.ViewPager>
-
-        </LinearLayout>
-
-    </android.support.v4.widget.NestedScrollView>
+    </android.support.v4.view.ViewPager>
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+        <android.support.design.widget.CollapsingToolbarLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@drawable/toolbar">
-        </android.support.v7.widget.Toolbar>
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
+            app:contentScrim="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:expandedTitleMarginEnd="64dp"
+            app:expandedTitleMarginStart="48dp">
+
+            <LinearLayout
+                android:id="@+id/collapsing_layout"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginTop="56dp"
+                android:orientation="vertical"
+                android:scaleType="centerCrop"
+                android:fitsSystemWindows="true"
+                app:layout_collapseMode="parallax"
+                app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
+                app:layout_behavior="com.ptmlb.ca.ahgroup.ui.HeaderViewBehavior">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/headerview" />
+            </LinearLayout>
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/toolbar"
+                app:layout_collapseMode="pin">
+            </android.support.v7.widget.Toolbar>
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/colorAccent">
+        </android.support.design.widget.TabLayout>
 
     </android.support.design.widget.AppBarLayout>
 
