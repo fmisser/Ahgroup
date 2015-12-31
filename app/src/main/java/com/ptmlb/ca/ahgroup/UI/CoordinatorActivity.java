@@ -9,6 +9,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -24,30 +25,36 @@ import butterknife.ButterKnife;
 
 public class CoordinatorActivity extends AppCompatActivity {
 
-    @Bind(R.id.view_pager)
-    ViewPager viewPager;
+//    @Bind(R.id.view_pager)
+//    ViewPager viewPager;
+//
+//    @Bind(R.id.tab_layout)
+//    TabLayout tabLayout;
 
-    @Bind(R.id.tab_layout)
-    TabLayout tabLayout;
+    @Bind(R.id.recycler_view)
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_coordinator);
+        setContentView(R.layout.activity_coordinator_2);
         ButterKnife.bind(this);
 
-        List<String> titles = new ArrayList<>();
-        titles.add("客户评价");
-        titles.add("服务内容");
-        tabLayout.addTab(tabLayout.newTab().setText(titles.get(0)));
-        tabLayout.addTab(tabLayout.newTab().setText(titles.get(1)));
+        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+        recyclerView.setAdapter(new CommentsAdapter());
 
-        List<Fragment> fragments = new ArrayList<>();
-        fragments.add(new CommentsFragment());
-        fragments.add(new ServiceContentFragment());
-        FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager(), fragments, titles);
-        viewPager.setAdapter(adapter);
-        tabLayout.setupWithViewPager(viewPager);
-        tabLayout.setTabsFromPagerAdapter(adapter);
+//        List<String> titles = new ArrayList<>();
+//        titles.add("客户评价");
+//        titles.add("服务内容");
+//        tabLayout.addTab(tabLayout.newTab().setText(titles.get(0)));
+//        tabLayout.addTab(tabLayout.newTab().setText(titles.get(1)));
+//
+//        List<Fragment> fragments = new ArrayList<>();
+//        fragments.add(new CommentsFragment());
+//        fragments.add(new ServiceContentFragment());
+//        FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager(), fragments, titles);
+//        viewPager.setAdapter(adapter);
+//        tabLayout.setupWithViewPager(viewPager);
+//        tabLayout.setTabsFromPagerAdapter(adapter);
     }
 }

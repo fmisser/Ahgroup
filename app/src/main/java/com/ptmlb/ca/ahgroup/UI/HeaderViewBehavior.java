@@ -4,10 +4,14 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -86,7 +90,7 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
             OverShootInterpolator = new OvershootInterpolator(tension);
         }
         animation_time = createAnimationTimeFromFlingVelocity(velocityY);
-        return super.onNestedFling(coordinatorLayout, child, target, velocityX, velocityX, consumed);
+        return super.onNestedFling(coordinatorLayout, child, target, velocityX, velocityY, consumed);
     }
 
     @Override
@@ -111,6 +115,8 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
         }
 
         totalY += dy;
+
+        //consumed[1] = dy;
 
         if (dy >= 0) {
             scrollUp = true;
@@ -174,12 +180,12 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
             float scale = 1 - totalY / (child.getHeight() * 10);
             child.setScaleX(scale);
             child.setScaleY(scale);
-            target.setTranslationY(-totalY);
+//            target.setTranslationY(-totalY);
 
         } else {
             totalY = 0;
             child.setTranslationY(0);
-            target.setTranslationY(0);
+//            target.setTranslationY(0);
         }
 
     }
@@ -215,10 +221,10 @@ public class HeaderViewBehavior extends CoordinatorLayout.Behavior<View> {
     Runnable animateEndRunnable = new Runnable() {
         @Override
         public void run() {
-            if (autoUp == true) {
+            if (autoUp) {
                 autoUp = false;
                 totalY = child.getHeight();
-            } else if (autoDown == true) {
+            } else if (autoDown) {
                 autoDown = false;
                 totalY = 0;
             }
