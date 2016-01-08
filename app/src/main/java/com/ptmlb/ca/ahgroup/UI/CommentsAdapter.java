@@ -39,7 +39,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemCount() {
-        return 20;
+        return 50;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
