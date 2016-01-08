@@ -8,25 +8,6 @@
     android:layout_height="match_parent"
     tools:context="com.ptmlb.ca.ahgroup.ui.CoordinatorActivity">
 
-    <LinearLayout
-        android:id="@+id/collapsing_layout"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="56dp"
-        android:orientation="vertical"
-        android:scaleType="centerCrop"
-        android:fitsSystemWindows="true"
-        app:layout_collapseMode="parallax"
-        app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
-        app:layout_behavior="com.ptmlb.ca.ahgroup.ui.HeaderViewBehavior">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/headerview" />
-    </LinearLayout>
-
     <!--<android.support.design.widget.TabLayout-->
         <!--android:id="@+id/tab_layout"-->
         <!--android:layout_width="match_parent"-->
@@ -43,14 +24,39 @@
 
     <!--</android.support.v4.view.ViewPager>-->
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_marginTop="356dp"
+    <com.ptmlb.ca.ahgroup.ui.HeaderViewLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary">
+        android:layout_marginTop="56dp">
 
-    </android.support.v7.widget.RecyclerView>
+        <LinearLayout
+            android:id="@+id/collapsing_layout"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:orientation="vertical"
+            android:scaleType="centerCrop"
+            android:fitsSystemWindows="true"
+            app:layout_collapseMode="parallax"
+            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
+            <!--app:layout_behavior="com.ptmlb.ca.ahgroup.ui.HeaderViewBehavior">-->
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:src="@drawable/headerview" />
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary">
+
+        </android.support.v7.widget.RecyclerView>
+
+    </com.ptmlb.ca.ahgroup.ui.HeaderViewLayout>
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -62,7 +68,8 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:background="@drawable/toolbar"
-            app:layout_collapseMode="pin">
+            app:layout_scrollFlags="scroll|enterAlways">
+            <!--app:layout_collapseMode="pin">-->
         </android.support.v7.widget.Toolbar>
 
         <!--<android.support.design.widget.CollapsingToolbarLayout-->
@@ -77,5 +84,21 @@
         <!--</android.support.design.widget.CollapsingToolbarLayout>-->
 
     </android.support.design.widget.AppBarLayout>
+
+    <!--<android.support.design.widget.AppBarLayout-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:theme="@style/AppTheme.AppBarOverlay">-->
+
+        <!--<android.support.v7.widget.Toolbar-->
+            <!--android:id="@+id/toolbar"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="?attr/actionBarSize"-->
+            <!--android:background="?attr/colorPrimary"-->
+            <!--android:theme="@style/AppTheme.AppBarOverlay"-->
+            <!--app:layout_scrollFlags="scroll|enterAlways"-->
+            <!--app:popupTheme="@style/AppTheme.PopupOverlay"/>-->
+
+    <!--</android.support.design.widget.AppBarLayout>-->
 
 </android.support.design.widget.CoordinatorLayout>
