@@ -51,7 +51,7 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     public static final int STATE_SETTLING = 2;
 
     private static final int BASE_SETTLE_DURATION = 200; // ms
-    private static final int MAX_SETTLE_DURATION = 500; // ms
+    private static final int MAX_SETTLE_DURATION = 400; // ms
 
     private final NestedScrollingParentHelper nestedScrollingParentHelper;
     //private final NestedScrollingChildHelper nestedScrollingChildHelper;
@@ -61,6 +61,7 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     private float mMinVelocity;
     private float mMaxVelocity = 24000.0f;
     private float mTension = 0.8f;
+    private final float MIN_TENSION = 0.6f;
 
     private View headerView;
     private View contentView;
@@ -103,8 +104,6 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 //            ViewCompat.postInvalidateOnAnimation(this);
 //        }
 
-
-
         if (continueSettling()) {
             ViewCompat.postInvalidateOnAnimation(this);
         }
@@ -125,6 +124,8 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 //        Log.d("top:", String.valueOf(contentView.getTop()));
 //        Log.d("deltaY:", String.valueOf(deltaY));
 
+        state = STATE_DRAGGING;
+
         int consumedY = 0;
         int currY = contentView.getTop();
 
@@ -140,9 +141,14 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
         if (consumedY != 0) {
             contentView.offsetTopAndBottom(-consumedY);
+            headerView.offsetTopAndBottom(-consumedY/2);
         }
 
         return consumedY;
+    }
+
+    private void headerAction(float offset) {
+        
     }
 
 //    @Override
@@ -171,8 +177,8 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-//        int paddingLeft = getPaddingLeft();
-//        int paddingTop = getPaddingTop();
+
+        maxScrollY = headerView.getHeight();
 
         {
             int left = 0;
@@ -181,8 +187,6 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
             int bottom = top + headerView.getMeasuredHeight();
             headerView.layout(left, top, right, bottom);
         }
-
-        maxScrollY = headerView.getHeight();
 
         {
             int left = 0;
@@ -468,6 +472,9 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
 
         mTension = Math.abs(velocityY / mMaxVelocity) * 3;
+        if (mTension < MIN_TENSION) {
+            mTension = MIN_TENSION;
+        }
         Log.d("mTension:", String.valueOf(mTension));
 
         return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
@@ -475,12 +482,17 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
     public boolean continueSettling() {
 
+        if (state == STATE_IDLE || state == STATE_DRAGGING) {
+            return false;
+        }
+
         boolean keepGoing = scrollerCompat.computeScrollOffset();
         final int y = scrollerCompat.getCurrY();
         final int dy = y - contentView.getTop();
 
         if (dy != 0) {
             contentView.offsetTopAndBottom(dy);
+            headerView.offsetTopAndBottom(dy/2);
         }
 
         if (keepGoing && y == scrollerCompat.getFinalY()) {
