@@ -1,6 +1,8 @@
 package com.ptmlb.ca.ahgroup.ui;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.support.annotation.IntDef;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.GestureDetectorCompat;
@@ -13,6 +15,7 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v4.widget.ScrollerCompat;
 import android.support.v4.widget.SlidingPaneLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -68,6 +71,10 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
     private int maxScrollY = 0;
 
+    private int mScrimColor = 0x99000000;
+    private float mScrimOpacity;
+    private Paint mScrimPaint = new Paint();
+
     public HeaderViewLayout(Context context) {
         this(context, null);
     }
@@ -96,6 +103,27 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
         mMinVelocity = 400.0f * density;
         scrollerCompat = ScrollerCompat.create(context, sInterpolator);
 
+    }
+
+    @Override
+    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+
+        Log.d("mScrimOpacity", String.valueOf(mScrimOpacity));
+
+//        final int restoreCount = canvas.save();
+        final boolean result = super.drawChild(canvas, child, drawingTime);
+//        canvas.restoreToCount(restoreCount);
+
+        if (child == headerView) {
+            final int baseAlpha = (mScrimColor & 0xff000000) >>> 24;
+            final int imag = (int) (baseAlpha * mScrimOpacity * 0.5);
+            final int color = imag << 24 | (mScrimColor & 0xffffff);
+            mScrimPaint.setColor(color);
+
+            canvas.drawRect(0, 0, getWidth(), getHeight(), mScrimPaint);
+        }
+
+        return result;
     }
 
     @Override
@@ -141,14 +169,45 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
         if (consumedY != 0) {
             contentView.offsetTopAndBottom(-consumedY);
-            headerView.offsetTopAndBottom(-consumedY/2);
+//            headerView.offsetTopAndBottom(-consumedY/2);
+            headerAction();
+            ViewCompat.postInvalidateOnAnimation(this);
         }
+
 
         return consumedY;
     }
 
-    private void headerAction(float offset) {
-        
+    private void headerAction() {
+
+        int top = contentView.getTop();
+        float offset = 1 - (float)top / (float)maxScrollY;
+        if (offset > 1.0f) {
+            offset = 1.0f;
+        } else if (offset < 0.0f) {
+            offset = 0.0f;
+        }
+
+        float deltaY = -offset * maxScrollY / 2;
+        Log.d("deltaY", String.valueOf(deltaY));
+
+        headerView.setTranslationY(-offset * maxScrollY / 2);
+
+        float scale = 1 - offset / 10;
+        if (scale < 0.95f) {
+            scale = 0.95f;
+        }
+        headerView.setScaleX(scale);
+        headerView.setScaleY(scale);
+
+        Log.d("scale", String.valueOf(scale));
+
+        mScrimOpacity = offset;
+//        Log.d("alpha", String.valueOf(alpha));
+//        headerView.setAlpha(alpha);
+
+
+        //headerView
     }
 
 //    @Override
@@ -492,7 +551,8 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
         if (dy != 0) {
             contentView.offsetTopAndBottom(dy);
-            headerView.offsetTopAndBottom(dy/2);
+//            headerView.offsetTopAndBottom(dy/2);
+            headerAction();
         }
 
         if (keepGoing && y == scrollerCompat.getFinalY()) {
