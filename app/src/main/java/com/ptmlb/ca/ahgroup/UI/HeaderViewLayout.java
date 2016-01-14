@@ -587,7 +587,7 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
             return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
         } else {
-            if ()
+
             return forceSettleCapturedViewAt(0, maxScrollY, 0, (int)velocityY);
         }
 
