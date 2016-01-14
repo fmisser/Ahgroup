@@ -26,8 +26,10 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AnticipateOvershootInterpolator;
 import android.view.animation.BounceInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
@@ -48,10 +50,9 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     private @interface State {}
 
     private int state = STATE_IDLE;
-
-    public static final int STATE_IDLE = 0;
-    public static final int STATE_DRAGGING = 1;
-    public static final int STATE_SETTLING = 2;
+    private static final int STATE_IDLE = 0;
+    private static final int STATE_DRAGGING = 1;
+    private static final int STATE_SETTLING = 2;
 
     private static final int BASE_SETTLE_DURATION = 200; // ms
     private static final int MAX_SETTLE_DURATION = 400; // ms
@@ -74,6 +75,20 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     private int mScrimColor = 0x99000000;
     private float mScrimOpacity;
     private Paint mScrimPaint = new Paint();
+
+    //pull to refresh part
+    private int ptrState = 0;
+    public static final int PTR_STATE_IDLE = 0;
+    public static final int PTR_STATE_PREPARE = 1;
+    public static final int PTR_STATE_LOADING = 2;
+    public static final int PTR_STATE_RESTORE = 3;
+
+    private PullToRefreshView pullToRefreshView;
+
+    private static final int PTR_MAX_HEIGHT = 350;
+    private static final int PTR_PREPARE_HEIGHT = 200;
+
+    private DecelerateInterpolator decelerateInterpolator = new DecelerateInterpolator(0.3f);
 
     public HeaderViewLayout(Context context) {
         this(context, null);
@@ -102,21 +117,18 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
         final float density = getResources().getDisplayMetrics().density;
         mMinVelocity = 400.0f * density;
         scrollerCompat = ScrollerCompat.create(context, sInterpolator);
-
     }
 
     @Override
     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
 
-        Log.d("mScrimOpacity", String.valueOf(mScrimOpacity));
-
-//        final int restoreCount = canvas.save();
+        final int restoreCount = canvas.save();
         final boolean result = super.drawChild(canvas, child, drawingTime);
-//        canvas.restoreToCount(restoreCount);
+        canvas.restoreToCount(restoreCount);
 
         if (child == headerView) {
             final int baseAlpha = (mScrimColor & 0xff000000) >>> 24;
-            final int imag = (int) (baseAlpha * mScrimOpacity * 0.5);
+            final int imag = (int) (baseAlpha * mScrimOpacity);
             final int color = imag << 24 | (mScrimColor & 0xffffff);
             mScrimPaint.setColor(color);
 
@@ -160,17 +172,39 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
         if (currY - deltaY < 0) {
             //超出顶部
             consumedY = currY;
+            contentView.offsetTopAndBottom(-consumedY);
+            headerAction();
+
         } else if (currY - deltaY > maxScrollY) {
+
+            Log.d("currY:", String.valueOf(currY));
+            Log.d("deltaY:", String.valueOf(deltaY));
+
             //超出底部
-            consumedY = currY - maxScrollY;
+            if (currY < maxScrollY) {
+                consumedY = currY - maxScrollY;
+                contentView.offsetTopAndBottom(-consumedY);
+                bottomPullToRefresh(deltaY - consumedY);
+                headerAction();
+            } else {
+                bottomPullToRefresh(deltaY);
+            }
+
+            //consumed all scroll
+            consumedY = deltaY;
+
         } else {
             consumedY = deltaY;
+            contentView.offsetTopAndBottom(-consumedY);
+            headerAction();
         }
 
         if (consumedY != 0) {
-            contentView.offsetTopAndBottom(-consumedY);
+//            contentView.offsetTopAndBottom(-consumedY);
+//            pullToRefreshView.offsetTopAndBottom(-consumedY);
+//            pullToRefreshView.onRefreshBegin(this);
 //            headerView.offsetTopAndBottom(-consumedY/2);
-            headerAction();
+//            headerAction();
             ViewCompat.postInvalidateOnAnimation(this);
         }
 
@@ -181,6 +215,9 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     private void headerAction() {
 
         int top = contentView.getTop();
+        if (top > maxScrollY) {
+            top = maxScrollY;
+        }
         float offset = 1 - (float)top / (float)maxScrollY;
         if (offset > 1.0f) {
             offset = 1.0f;
@@ -189,7 +226,7 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
         }
 
         float deltaY = -offset * maxScrollY / 2;
-        Log.d("deltaY", String.valueOf(deltaY));
+//        Log.d("deltaY", String.valueOf(deltaY));
 
         headerView.setTranslationY(-offset * maxScrollY / 2);
 
@@ -200,7 +237,7 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
         headerView.setScaleX(scale);
         headerView.setScaleY(scale);
 
-        Log.d("scale", String.valueOf(scale));
+//        Log.d("scale", String.valueOf(scale));
 
         mScrimOpacity = offset;
 //        Log.d("alpha", String.valueOf(alpha));
@@ -225,7 +262,8 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     protected void onFinishInflate() {
         super.onFinishInflate();
         headerView = getChildAt(0);
-        contentView = getChildAt(1);
+        pullToRefreshView = (PullToRefreshView) getChildAt(1);
+        contentView = getChildAt(2);
     }
 
     @Override
@@ -253,6 +291,16 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
             int right = left + contentView.getMeasuredWidth();
             int bottom = top + contentView.getMeasuredHeight();
             contentView.layout(left, top, right, bottom);
+        }
+
+//        pullToRefreshView.onReset(this);
+
+        {
+            int left = 0;
+            int top = 0;
+            int right = left + pullToRefreshView.getMeasuredWidth();
+            int bottom = top + pullToRefreshView.getMeasuredHeight();
+            pullToRefreshView.layout(left, top, right, bottom);
         }
     }
 
@@ -525,18 +573,24 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
         int top = contentView.getTop();
 
-        final float offset = 1 - (float)top / (float)maxScrollY;
-        final float yvel = clampMag(velocityY, mMinVelocity, mMaxVelocity);
-        int finalTopY = yvel > 0 || yvel == 0 && offset > 0.5f ? 0 : maxScrollY;
+        if (top <= maxScrollY) {
+            final float offset = 1 - (float)top / (float)maxScrollY;
+            final float yvel = clampMag(velocityY, mMinVelocity, mMaxVelocity);
+            int finalTopY = yvel > 0 || yvel == 0 && offset > 0.5f ? 0 : maxScrollY;
 
 
-        mTension = Math.abs(velocityY / mMaxVelocity) * 3;
-        if (mTension < MIN_TENSION) {
-            mTension = MIN_TENSION;
+            mTension = Math.abs(velocityY / mMaxVelocity) * 3;
+            if (mTension < MIN_TENSION) {
+                mTension = MIN_TENSION;
+            }
+            Log.d("mTension:", String.valueOf(mTension));
+
+            return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
+        } else {
+            if ()
+            return forceSettleCapturedViewAt(0, maxScrollY, 0, (int)velocityY);
         }
-        Log.d("mTension:", String.valueOf(mTension));
 
-        return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
     }
 
     public boolean continueSettling() {
@@ -575,6 +629,75 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 //        }
 
         return keepGoing;
+    }
+
+    //pull to refresh part
+    private void bottomPullToRefresh(int deltaY) {
+
+        int dstY = contentView.getTop() - maxScrollY - deltaY;
+        if (dstY >= PTR_MAX_HEIGHT) {
+            dstY = PTR_MAX_HEIGHT;
+        }
+
+        int actualY = dstY;
+        int offset = contentView.getTop() - maxScrollY - actualY;
+        contentView.offsetTopAndBottom(-offset);
+        pullToRefreshView.offsetTopAndBottom(-offset);
+
+        if (dstY > 0 && dstY <= PTR_PREPARE_HEIGHT ) {
+            ptrState = PTR_STATE_PREPARE;
+            float percent = (float)dstY / (float)PTR_PREPARE_HEIGHT;
+            pullToRefreshView.onPositionChanged(this, ptrState, percent);
+        } else if (dstY > PTR_PREPARE_HEIGHT) {
+            ptrState = PTR_STATE_LOADING;
+            float percent = (float)(dstY - PTR_PREPARE_HEIGHT) / (float)(PTR_MAX_HEIGHT - PTR_PREPARE_HEIGHT);
+            pullToRefreshView.onPositionChanged(this, ptrState, percent);
+        } else {
+            ptrState = PTR_STATE_IDLE;
+        }
+
+
+
+//        int currY = contentView.getTop() - maxScrollY - deltaY;
+////        Log.d("getTop:", String.valueOf(contentView.getTop()));
+//        if (currY >= PTR_MAX_HEIGHT) {
+//            currY = PTR_MAX_HEIGHT;
+//        }
+//        int actualY = (int) ( decelerateInterpolator.getInterpolation((float)currY / (float)(PTR_MAX_HEIGHT) ) * (float)currY);
+//        Log.d("actualY:", String.valueOf(actualY));
+//
+//        int originalY = contentView.getTop() - maxScrollY;
+//        int lastY = (int) (decelerateInterpolator.getInterpolation((float)originalY / (float)(PTR_MAX_HEIGHT) ) * (float)originalY);
+//
+//        contentView.offsetTopAndBottom(actualY - lastY);
+
+//        int actualY = currY;
+
+//        if (actualY >= PTR_MAX_HEIGHT) {
+//            actualY = PTR_MAX_HEIGHT;
+//        }
+
+
+//        if (deltaY < 0) {
+//            contentView.offsetTopAndBottom(actualY);
+//        } else {
+//            contentView.offsetTopAndBottom(-actualY);
+//        }
+
+
+//        if (deltaY < 0) {
+//            int offset = contentView.getTop() - maxScrollY + actualY;
+//            Log.d("offset:", String.valueOf(offset));
+//            contentView.offsetTopAndBottom(offset);
+//        } else {
+//            int offset = contentView.getTop() - maxScrollY - actualY;
+//            Log.d("offset:", String.valueOf(offset));
+//            contentView.offsetTopAndBottom(offset);
+//        }
+
+
+//        Log.d("currY:", String.valueOf(currY));
+//        Log.d("actualY:", String.valueOf(actualY));
     }
 
 }
