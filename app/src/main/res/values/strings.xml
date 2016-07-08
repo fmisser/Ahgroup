@@ -5,4 +5,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="bottom_pull_refresh_content">刷新并查看服务项目</string>
+    <string name="top_pull_refresh_content">松开刷新</string>
+    <string name="top_pull_go_home_content">松开回到首页</string>
 </resources>

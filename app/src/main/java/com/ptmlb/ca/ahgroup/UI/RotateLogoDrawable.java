@@ -79,12 +79,10 @@ public class RotateLogoDrawable extends Drawable {
             scale = 1.0f;
         }
 
-//        canvas.scale(scale, scale, width/2, height/2);
         Matrix matrix = new Matrix();
         matrix.postTranslate(centrePoint.x-width/2, centrePoint.y-height/2);
         matrix.postRotate(angle, centrePoint.x, centrePoint.y);
         matrix.postScale(scale, scale, centrePoint.x, centrePoint.y/2);
-//        matrix.postTranslate(width/2, height/2);
         canvas.drawBitmap(bitmap, matrix, paint);
     }
 

@@ -4,39 +4,17 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.annotation.IntDef;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.v4.view.GestureDetectorCompat;
-import android.support.v4.view.NestedScrollingChild;
-import android.support.v4.view.NestedScrollingChildHelper;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
-import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v4.widget.ScrollerCompat;
-import android.support.v4.widget.SlidingPaneLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AnticipateOvershootInterpolator;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.view.animation.OvershootInterpolator;
-import android.widget.FrameLayout;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.IllegalFormatCodePointException;
 
 /**
  * Created by Administrator on 2015/12/31.
@@ -48,24 +26,29 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     @IntDef({STATE_IDLE, STATE_DRAGGING, STATE_SETTLING})
     @Retention(RetentionPolicy.SOURCE)
     private @interface State {}
-
     private int state = STATE_IDLE;
     private static final int STATE_IDLE = 0;
     private static final int STATE_DRAGGING = 1;
     private static final int STATE_SETTLING = 2;
 
+    @IntDef({MODE_TOP, MODE_BOTTOM})
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface Mode {}
+    private int mode = MODE_BOTTOM;
+    private static final int MODE_TOP = 0;
+    private static final int MODE_BOTTOM = 1;
+    private boolean onlyTopMode = false;    //是否只有顶部模式
+
     private static final int BASE_SETTLE_DURATION = 200; // ms
     private static final int MAX_SETTLE_DURATION = 400; // ms
 
     private final NestedScrollingParentHelper nestedScrollingParentHelper;
-    //private final NestedScrollingChildHelper nestedScrollingChildHelper;
-    //private final GestureDetectorCompat gestureDetectorCompat;
-//    private ViewDragHelper viewDragHelper;
+
     private ScrollerCompat scrollerCompat;
     private float mMinVelocity;
     private float mMaxVelocity = 24000.0f;
     private float mTension = 0.8f;
-    private final float MIN_TENSION = 0.6f;
+    private static final float MIN_TENSION = 0.6f;
 
     private View headerView;
     private View contentView;
@@ -77,18 +60,23 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     private Paint mScrimPaint = new Paint();
 
     //pull to refresh part
-    private int ptrState = 0;
     public static final int PTR_STATE_IDLE = 0;
     public static final int PTR_STATE_PREPARE = 1;
     public static final int PTR_STATE_LOADING = 2;
     public static final int PTR_STATE_RESTORE = 3;
 
-    private PullToRefreshView pullToRefreshView;
-
-    private static final int PTR_MAX_HEIGHT = 350;
     private static final int PTR_PREPARE_HEIGHT = 200;
+    private static final int PTR_MAX_HEIGHT = 400;
+    private static final int PTR_RESTORE_HEIGHT = 600;
 
-//    private DecelerateInterpolator decelerateInterpolator = new DecelerateInterpolator(0.3f);
+    private PullToRefreshView pullToRefreshView;
+    private int ptrState = 0;
+
+    private TopPullToRefreshView topPullToRefreshView;
+    private int topPtrState = 0;
+
+    private FooterPullToRefreshView footerPullToRefreshView;
+    private int footerPtrState = 0;
 
     public HeaderViewLayout(Context context) {
         this(context, null);
@@ -101,22 +89,15 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     public HeaderViewLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        //gestureDetectorCompat = new GestureDetectorCompat(context, this);
-
         nestedScrollingParentHelper = new NestedScrollingParentHelper(this);
-        //nestedScrollingChildHelper = new NestedScrollingChildHelper(this);
-        //setNestedScrollingEnabled(true);
-
-//        viewDragHelper = ViewDragHelper.create(this, 1.0f, new ViewDragHelper.Callback() {
-//            @Override
-//            public boolean tryCaptureView(View child, int pointerId) {
-//                return true;
-//            }
-//        });
 
         final float density = getResources().getDisplayMetrics().density;
         mMinVelocity = 400.0f * density;
         scrollerCompat = ScrollerCompat.create(context, sInterpolator);
+
+        if (onlyTopMode) {
+            mode = MODE_TOP;
+        }
     }
 
     @Override
@@ -131,128 +112,209 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
             final int imag = (int) (baseAlpha * mScrimOpacity);
             final int color = imag << 24 | (mScrimColor & 0xffffff);
             mScrimPaint.setColor(color);
-
             canvas.drawRect(0, 0, getWidth(), getHeight(), mScrimPaint);
         }
-
         return result;
     }
 
     @Override
     public void computeScroll() {
-//        if (viewDragHelper.continueSettling(true)) {
-//            ViewCompat.postInvalidateOnAnimation(this);
-//        }
-
         if (continueSettling()) {
             ViewCompat.postInvalidateOnAnimation(this);
         }
-
-//        if (scrollerCompat.computeScrollOffset()) {
-//            int y = scrollerCompat.getCurrY();
-////            Log.d("currY:", String.valueOf(y));
-////            Log.d("scrollY:", String.valueOf(scrollY));
-//            if (y != scrollY) {
-//                move(y - scrollY);
-//            }
-//            ViewCompat.postInvalidateOnAnimation(this);
-//        }
+        headerViewScrollAnimation();
+        topScrollAnimation();
+        bottomScrollAnimation();
+        footerScrollAnimation();
     }
 
-    private int move(int deltaY) {
+    //顶部刷新回调
+    public void topRefresh() {
 
-        state = STATE_DRAGGING;
+    }
 
-        int consumedY;
+    //底部刷新回调
+    public void footerRefresh() {
+
+    }
+
+    //模式改变回调
+    public void modeChanged(int mode) {
+
+    }
+
+    //结束刷新动画
+    public void stopRefresh() {
+        topPtrState = PTR_STATE_IDLE;
+        footerPtrState = PTR_STATE_IDLE;
+        settle(0, 0);
+    }
+
+    private void headerViewScrollAnimation() {
         int currY = contentView.getTop();
-
-        if (currY - deltaY < 0) {
-            //超出顶部
-            consumedY = currY;
-            contentView.offsetTopAndBottom(-consumedY);
-            headerAction();
-
-        } else if (currY - deltaY > maxScrollY) {
-
-            Log.d("currY:", String.valueOf(currY));
-            Log.d("deltaY:", String.valueOf(deltaY));
-
-            //超出底部
-            if (currY < maxScrollY) {
-                consumedY = currY - maxScrollY;
-                contentView.offsetTopAndBottom(-consumedY);
-                bottomPullToRefresh(deltaY - consumedY, false);
-                headerAction();
-            } else {
-                bottomPullToRefresh(deltaY, false);
-            }
-
-            //consumed all scroll
-            consumedY = deltaY;
-
+        int offset = currY - maxScrollY;
+        if (offset < 0) {
+            float factor = (float) Math.abs(offset) / (float) maxScrollY;
+            float scale = (float) Math.max(0.95, 1 - factor/10);
+            headerView.setScaleX(scale);
+            headerView.setScaleY(scale);
+            mScrimOpacity = factor;
+            headerView.setTranslationY(offset/2);
         } else {
+            headerView.setScaleX(1.0f);
+            headerView.setScaleY(1.0f);
+            mScrimOpacity = 0.0f;
+            headerView.setTranslationY(offset);
+        }
+    }
 
-            consumedY = deltaY;
-            contentView.offsetTopAndBottom(-consumedY);
-            headerAction();
-            bottomPullToRefresh(0, false);
+    private void topScrollAnimation() {
+        if (mode != MODE_TOP) {
+            return;
+        }
+        int currY = contentView.getTop();
+        if (currY < 0) {
+            return;
+        }
+        if (currY == 0) {
+            topPtrState = PTR_STATE_IDLE;
+            topPullToRefreshView.onPositionChanged(this, topPtrState, 0.0f);
+        } else if (currY < PTR_PREPARE_HEIGHT) {
+            topPtrState = PTR_STATE_PREPARE;
+            topPullToRefreshView.onPositionChanged(this, topPtrState, (float) currY / (float) PTR_PREPARE_HEIGHT);
+        } else if (currY < PTR_MAX_HEIGHT) {
+            topPtrState = PTR_STATE_LOADING;
+            topPullToRefreshView.onPositionChanged(this, topPtrState, (float) (currY-PTR_PREPARE_HEIGHT) / (float) (PTR_MAX_HEIGHT-PTR_PREPARE_HEIGHT));
+        } else if (currY < PTR_RESTORE_HEIGHT) {
+            topPtrState = PTR_STATE_RESTORE;
+            topPullToRefreshView.onPositionChanged(this, topPtrState, 1.0f);
+        }
+    }
+
+    private void bottomScrollAnimation() {
+        if (mode != MODE_BOTTOM) {
+            return;
+        }
+        int currY = contentView.getTop();
+        int offset = currY - maxScrollY;
+        if (offset < 0) {
+            ptrState = PTR_STATE_IDLE;
+            pullToRefreshView.onPositionChanged(this, ptrState, 0.0f);
+        } else if (offset < PTR_PREPARE_HEIGHT) {
+            ptrState = PTR_STATE_PREPARE;
+            pullToRefreshView.onPositionChanged(this, ptrState, (float) offset/(float) PTR_PREPARE_HEIGHT);
+        } else {
+            ptrState = PTR_STATE_LOADING;
+            pullToRefreshView.onPositionChanged(this, ptrState, (float) (offset-PTR_PREPARE_HEIGHT)/(float) PTR_MAX_HEIGHT);
+        }
+    }
+
+    private void footerScrollAnimation() {
+        if (mode != MODE_TOP) {
+            return;
+        }
+
+        int currY = contentView.getTop();
+        if (currY > 0) {
+            return;
+        }
+
+        if (currY == 0) {
+            footerPtrState = PTR_STATE_IDLE;
+            footerPullToRefreshView.onPositionChanged(this, footerPtrState, 0.0f);
+        } else if (currY > -PTR_PREPARE_HEIGHT) {
+            footerPtrState = PTR_STATE_PREPARE;
+            footerPullToRefreshView.onPositionChanged(this, footerPtrState, (float) -currY / (float) PTR_PREPARE_HEIGHT);
+        } else {
+            footerPtrState = PTR_STATE_LOADING;
+            footerPullToRefreshView.onPositionChanged(this, footerPtrState, 1.0f);
+        }
+    }
+
+    //内部滚动前,优先处理外部滚动事件
+    private int preScrollY(int deltaY) {
+        state = STATE_DRAGGING;
+        int consumedY;
+
+        int currY = contentView.getTop();
+        if (currY == 0) {
+            //已经位于顶部,则优先内部滚动
+            consumedY = 0;
+        } else if (currY > 0) {
+            //计算滚动到顶部最多消耗的距离
+            consumedY = currY - deltaY > 0 ? deltaY : currY;
+            //限制下拉滚动的最大距离
+            int dy;
+            if (mode == MODE_BOTTOM) {
+                dy = currY - consumedY > maxScrollY + PTR_MAX_HEIGHT ? currY - maxScrollY - PTR_MAX_HEIGHT : consumedY;
+                if (currY - dy > maxScrollY) {
+                    //底部的偏移值
+                    float offset = Math.min ((float) (currY - dy - maxScrollY) / (float) PTR_MAX_HEIGHT, 1.0f);
+                    float dstOffset = ptrInterpolator.getInterpolation(offset);
+                    int dstY = (int) (dstOffset * PTR_MAX_HEIGHT);
+                    contentView.offsetTopAndBottom(dstY-(currY-maxScrollY));
+                } else {
+                    contentView.offsetTopAndBottom(-dy);
+                }
+            } else {
+                int maxHeight;
+                if (onlyTopMode) {
+                    maxHeight = PTR_MAX_HEIGHT - 20;
+                } else {
+                    maxHeight = PTR_RESTORE_HEIGHT;
+                }
+                dy = currY - consumedY > maxHeight ? currY - maxHeight : consumedY;
+//                if (currY - dy > 0) {
+//                    float offset = Math.min((float) (currY - dy) / (float) maxHeight, 1.0f);
+//                    float dstOffset = ptrInterpolator.getInterpolation(offset);
+//                    int dstY = (int) (dstOffset * maxHeight);
+//                    contentView.offsetTopAndBottom(dstY-currY);
+//                } else {
+//                    contentView.offsetTopAndBottom(-dy);
+//                }
+                contentView.offsetTopAndBottom(-dy);
+            }
+        } else {
+            consumedY = currY - deltaY < 0 ? deltaY : currY;
+            int dy = currY - consumedY < -PTR_MAX_HEIGHT ? currY + PTR_MAX_HEIGHT : consumedY;
+            contentView.offsetTopAndBottom(-dy);
+        }
+
+        //滚动到顶部时则切换至Top模式
+        if (contentView.getTop() == 0) {
+            setMode(MODE_TOP);
         }
 
         if (consumedY != 0) {
-//            contentView.offsetTopAndBottom(-consumedY);
-//            pullToRefreshView.offsetTopAndBottom(-consumedY);
-//            pullToRefreshView.onRefreshBegin(this);
-//            headerView.offsetTopAndBottom(-consumedY/2);
-//            headerAction();
             ViewCompat.postInvalidateOnAnimation(this);
         }
-
         return consumedY;
     }
 
-    private void headerAction() {
+    //内部滚动结束后,处理剩余滚动量
+    private void scrollY(int deltaY) {
+        state = STATE_DRAGGING;
+//        int currY = contentView.getTop();
+//        if (currY == 0 && deltaY < 0) {
+//            //当位于顶部,并且内部滚动已到上边界,这时候继续往下滚动的量用来处理外部滚动;
+//            contentView.offsetTopAndBottom(-deltaY);
+//        } else if (currY == 0 && deltaY > 0) {
+//            //内部滚动到达下边界,继续往上滚动的量用来处理外部滚动
+//            contentView.offsetTopAndBottom(-deltaY);
+//        }
 
-        int top = contentView.getTop();
-        if (top > maxScrollY) {
-            top = maxScrollY;
-        }
-        float offset = 1 - (float)top / (float)maxScrollY;
-        if (offset > 1.0f) {
-            offset = 1.0f;
-        } else if (offset < 0.0f) {
-            offset = 0.0f;
-        }
-
-//        float deltaY = -offset * maxScrollY / 2;
-
-        headerView.setTranslationY(-offset * maxScrollY / 2);
-
-        float scale = 1 - offset / 10;
-        if (scale < 0.95f) {
-            scale = 0.95f;
-        }
-        headerView.setScaleX(scale);
-        headerView.setScaleY(scale);
-        mScrimOpacity = offset;
+        contentView.offsetTopAndBottom(-deltaY);
     }
-
-//    @Override
-//    public boolean onInterceptTouchEvent(MotionEvent ev) {
-//        return viewDragHelper.shouldInterceptTouchEvent(ev);
-//    }
-//
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        viewDragHelper.processTouchEvent(event);
-//        return true;
-//    }
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        headerView = getChildAt(0);
-        pullToRefreshView = (PullToRefreshView) getChildAt(1);
-        contentView = getChildAt(2);
+        pullToRefreshView = (PullToRefreshView) getChildAt(0);
+        topPullToRefreshView = (TopPullToRefreshView) getChildAt(1);
+        topPullToRefreshView.setVisibility(INVISIBLE);
+        footerPullToRefreshView = (FooterPullToRefreshView) getChildAt(2);
+        headerView = getChildAt(3);
+        contentView = getChildAt(4);
     }
 
     @Override
@@ -276,7 +338,12 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
         {
             int left = 0;
-            int top = maxScrollY;
+            int top;
+            if (onlyTopMode) {
+                top = 0;
+            } else {
+                top = maxScrollY;
+            }
             int right = left + contentView.getMeasuredWidth();
             int bottom = top + contentView.getMeasuredHeight();
             contentView.layout(left, top, right, bottom);
@@ -289,6 +356,27 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
             int bottom = top + pullToRefreshView.getMeasuredHeight();
             pullToRefreshView.layout(left, top, right, bottom);
         }
+
+        {
+            int left = 0;
+            int top = 0;
+            int right = left + topPullToRefreshView.getMeasuredWidth();
+            int bottom = top + topPullToRefreshView.getMeasuredHeight();
+            topPullToRefreshView.layout(left, top, right, bottom);
+        }
+
+        {
+            int left = 0;
+            int top = getHeight() - footerPullToRefreshView.getMeasuredHeight();
+            int right = left + footerPullToRefreshView.getMeasuredWidth();
+            int bottom = getHeight();
+            footerPullToRefreshView.layout(left, top, right, bottom);
+        }
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return super.onInterceptTouchEvent(ev);
     }
 
     //NestedScrollingParent
@@ -306,28 +394,20 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
     @Override
     public void onStopNestedScroll(View target) {
         nestedScrollingParentHelper.onStopNestedScroll(target);
-//        if (viewDragHelper.smoothSlideViewTo(contentView, 0, 0)) {
-//            ViewCompat.postInvalidateOnAnimation(this);
-//            totalY = headerView.getHeight();
-//        }
-
         settle(0, 0);
     }
 
     @Override
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
-
+        scrollY(dyUnconsumed);
     }
 
     @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
 
-        int consumedY = move(dy);
-
-        consumed[1] = consumedY;
+        int consumedY = preScrollY(dy);
         consumed[0] = 0;
-
-//        Log.d("dy:", String.valueOf(dy));
+        consumed[1] = consumedY;
     }
 
     @Override
@@ -337,25 +417,7 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
-
-//        Log.d("velocityY:", String.valueOf(velocityY));
-
         return settle(velocityX, velocityY);
-
-//        scrollerCompat.fling(0, scrollY, 0, (int) velocityY, 0, 0, 0, maxScrollY, 0, 0);
-//        ViewCompat.postInvalidateOnAnimation(this);
-//
-//        fling(velocityX, velocityX);
-//        return true;
-
-//        boolean ret;
-//        if (velocityY > 0) {
-//            ret = forceSettleCapturedViewAt(0, maxScrollY, 0, (int)velocityY);
-//        } else {
-//            ret = forceSettleCapturedViewAt(0, 0, 0, (int)velocityY);
-//        }
-//        ViewCompat.postInvalidateOnAnimation(this);
-//        return ret;
     }
 
     @Override
@@ -363,103 +425,103 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
         return nestedScrollingParentHelper.getNestedScrollAxes();
     }
 
-    //NestedScrollingChild
+    private boolean settle(float velocityX, float velocityY) {
 
-//    @Override
-//    public void setNestedScrollingEnabled(boolean enabled) {
-//        nestedScrollingChildHelper.setNestedScrollingEnabled(enabled);
-//    }
-//
-//    @Override
-//    public boolean isNestedScrollingEnabled() {
-//        return nestedScrollingChildHelper.isNestedScrollingEnabled();
-//    }
-//
-//    @Override
-//    public boolean startNestedScroll(int axes) {
-//        return nestedScrollingChildHelper.startNestedScroll(axes);
-//    }
-//
-//    @Override
-//    public void stopNestedScroll() {
-//        nestedScrollingChildHelper.stopNestedScroll();
-//    }
-//
-//    @Override
-//    public boolean hasNestedScrollingParent() {
-//        return nestedScrollingChildHelper.hasNestedScrollingParent();
-//    }
-//
-//    @Override
-//    public boolean dispatchNestedScroll(int dxConsumed, int dyConsumed,
-//                                        int dxUnconsumed, int dyUnconsumed, int[] offsetInWindow) {
-//        return nestedScrollingChildHelper.dispatchNestedScroll(dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, offsetInWindow);
-//    }
-//
-//    @Override
-//    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed, int[] offsetInWindow) {
-//        return nestedScrollingChildHelper.dispatchNestedPreScroll(dx, dy, consumed, offsetInWindow);
-//    }
-//
-//    @Override
-//    public boolean dispatchNestedFling(float velocityX, float velocityY, boolean consumed) {
-//        return nestedScrollingChildHelper.dispatchNestedFling(velocityX, velocityY, consumed);
-//    }
-//
-//    @Override
-//    public boolean dispatchNestedPreFling(float velocityX, float velocityY) {
-//        return nestedScrollingChildHelper.dispatchNestedPreFling(velocityX, velocityY);
-//    }
-//
-//    @Override
-//    protected void onDetachedFromWindow() {
-//        super.onDetachedFromWindow();
-//        nestedScrollingChildHelper.onDetachedFromWindow();
-//    }
+        //已经在惯性滑动时滑动事件外部不再处理
+        if (state == STATE_SETTLING) {
+            return false;
+        }
 
-    //OnGestureListener
+        int top = contentView.getTop();
+        if (top == 0) {
+            //当位于顶部时,滑动交给内部处理,外部不处理
+            return false;
+        }
 
-//    @Override
-//    public boolean onDown(MotionEvent e) {
-//        startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
-//        return true;
-//    }
-//
-//    @Override
-//    public void onShowPress(MotionEvent e) {
-//
-//    }
-//
-//    @Override
-//    public boolean onSingleTapUp(MotionEvent e) {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-//        dispatchNestedPreScroll(0, (int) distanceY, null, null);
-//        dispatchNestedScroll(0, 0, 0, 0, null);
-//        return true;
-//    }
-//
-//    @Override
-//    public void onLongPress(MotionEvent e) {
-//
-//    }
-//
-//    @Override
-//    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        final boolean handled = gestureDetectorCompat.onTouchEvent(event);
-//        if (!handled && event.getAction() == MotionEvent.ACTION_UP) {
-//            stopNestedScroll();
+        mTension = Math.abs(velocityY / mMaxVelocity) * 3;
+        if (mTension < MIN_TENSION) {
+            mTension = MIN_TENSION;
+        }
+
+        if (top <= maxScrollY) {
+
+            int finalTopY;
+
+            if (mode == MODE_BOTTOM) {
+                final float offset = 1 - (float)top / (float)maxScrollY;
+                final float yvel = clampMag(velocityY, mMinVelocity, mMaxVelocity);
+                finalTopY = yvel > 0 || yvel == 0 && offset > 0.5f ? 0 : maxScrollY;
+            } else {
+                if (topPtrState == PTR_STATE_LOADING) {
+                    //多加的20像素为防止弹性效果引起的动画上的Bug
+                    finalTopY = PTR_PREPARE_HEIGHT + 20;
+                    topPullToRefreshView.setRefreshing(true);
+                    topRefresh();
+                } else if (topPtrState == PTR_STATE_RESTORE) {
+                    finalTopY = maxScrollY;
+                    topPullToRefreshView.setVisibility(INVISIBLE);
+                    headerView.setVisibility(VISIBLE);
+                } else if (footerPtrState == PTR_STATE_LOADING) {
+                    finalTopY = -PTR_PREPARE_HEIGHT - 20;
+                    footerPullToRefreshView.setRefreshing(true);
+                    footerRefresh();
+                } else {
+                    finalTopY = 0;
+                }
+            }
+            return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
+        } else {
+            int finalTopY = ptrState == PTR_STATE_LOADING ? 0 : maxScrollY;
+            return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
+        }
+    }
+
+    public boolean continueSettling() {
+
+        if (state == STATE_IDLE || state == STATE_DRAGGING) {
+            return false;
+        }
+
+        boolean keepGoing = scrollerCompat.computeScrollOffset();
+        final int y = scrollerCompat.getCurrY();
+        final int dy = y - contentView.getTop();
+        contentView.offsetTopAndBottom(dy);
+
+//        if (keepGoing && y == scrollerCompat.getFinalY()) {
+//            // Close enough. The interpolator/scroller might think we're still moving
+//            // but the user sure doesn't.
+//            scrollerCompat.abortAnimation();
+//            state = STATE_IDLE;
+//            keepGoing = false;
 //        }
-//        return true;
-//    }
+
+        if (!keepGoing) {
+            state = STATE_IDLE;
+            if (contentView.getTop() == 0) {
+                //设置为顶部模式
+                setMode(MODE_TOP);
+            } else if (contentView.getTop() == maxScrollY) {
+                //设置为底部模式
+                setMode(MODE_BOTTOM);
+            }
+        }
+
+        return keepGoing;
+    }
+
+    private void setMode(int mode) {
+        if (mode == MODE_TOP) {
+            //设置为顶部模式
+            this.mode = MODE_TOP;
+            pullToRefreshView.setVisibility(INVISIBLE);
+            topPullToRefreshView.setVisibility(VISIBLE);
+            headerView.setVisibility(INVISIBLE);
+        } else {
+            this.mode = MODE_BOTTOM;
+            pullToRefreshView.setVisibility(VISIBLE);
+        }
+        modeChanged(mode);
+    }
 
     private float clampMag(float value, float absMin, float absMax) {
         final float absValue = Math.abs(value);
@@ -526,7 +588,6 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
     private boolean forceSettleCapturedViewAt(int finalLeft, int finalTop, int xvel, int yvel) {
         final int startTop = contentView.getTop();
-//        final int startTop = scrollY;
         final int dy = finalTop - startTop;
 
         if (dy == 0) {
@@ -544,157 +605,16 @@ public class HeaderViewLayout extends ViewGroup implements NestedScrollingParent
 
     private final Interpolator sInterpolator = new Interpolator() {
         public float getInterpolation(float t) {
-//            t -= 1.0f;
-//            return t * t * t * t * t + 1.0f;
-
             t -= 1.0f;
             return t * t * ((mTension + 1) * t + mTension) + 1.0f;
         }
     };
 
-    private boolean settle(float velocityX, float velocityY) {
+    private final Interpolator ptrInterpolator = new Interpolator() {
 
-        if (state == STATE_SETTLING) {
-            return false;
+        @Override
+        public float getInterpolation(float input) {
+            return (float) (Math.sin(input+0.25) - Math.sin(0.25));
         }
-
-        int top = contentView.getTop();
-
-        if (top <= maxScrollY) {
-            final float offset = 1 - (float)top / (float)maxScrollY;
-            final float yvel = clampMag(velocityY, mMinVelocity, mMaxVelocity);
-            int finalTopY = yvel > 0 || yvel == 0 && offset > 0.5f ? 0 : maxScrollY;
-
-            mTension = Math.abs(velocityY / mMaxVelocity) * 3;
-            if (mTension < MIN_TENSION) {
-                mTension = MIN_TENSION;
-            }
-            Log.d("mTension:", String.valueOf(mTension));
-            return forceSettleCapturedViewAt(0, finalTopY, 0, (int)velocityY);
-        } else {
-            return forceSettleCapturedViewAt(0, maxScrollY, 0, (int)velocityY);
-        }
-    }
-
-    public boolean continueSettling() {
-
-        if (state == STATE_IDLE || state == STATE_DRAGGING) {
-            return false;
-        }
-
-        boolean keepGoing = scrollerCompat.computeScrollOffset();
-        final int y = scrollerCompat.getCurrY();
-        final int dy = y - contentView.getTop();
-
-        if (dy != 0) {
-            contentView.offsetTopAndBottom(dy);
-            bottomPullToRefresh(dy, true);
-//            headerView.offsetTopAndBottom(dy/2);
-
-            if (contentView.getTop() > 900) {
-                headerView.offsetTopAndBottom(dy);
-            } else {
-                headerAction();
-            }
-        }
-
-        if (keepGoing && y == scrollerCompat.getFinalY()) {
-            // Close enough. The interpolator/scroller might think we're still moving
-            // but the user sure doesn't.
-            scrollerCompat.abortAnimation();
-            state = STATE_IDLE;
-            keepGoing = false;
-        }
-
-//        if (!keepGoing) {
-//            if (scrollY != 0 && scrollY != maxScrollY) {
-//                if (scrollY < maxScrollY / 2 ) {
-//                    forceSettleCapturedViewAt(0, 0, 0, 0);
-//                } else {
-//                    forceSettleCapturedViewAt(0, maxScrollY, 0, 0);
-//                }
-//                ViewCompat.postInvalidateOnAnimation(this);
-//            }
-//        }
-
-        return keepGoing;
-    }
-
-    //pull to refresh part
-    private void bottomPullToRefresh(int deltaY, boolean isSettle) {
-
-        int dstY = contentView.getTop() - maxScrollY - deltaY;
-        if (dstY >= PTR_MAX_HEIGHT) {
-            dstY = PTR_MAX_HEIGHT;
-        }
-
-        if (!isSettle) {
-            int actualY = dstY;
-            int offset = contentView.getTop() - maxScrollY - actualY;
-            contentView.offsetTopAndBottom(-offset);
-            headerView.offsetTopAndBottom(-offset);
-        }
-
-//        pullToRefreshView.offsetTopAndBottom(-offset);
-//        LayoutParams layoutParams = pullToRefreshView.getLayoutParams();
-//        layoutParams.height = -offset;
-//        pullToRefreshView.setLayoutParams(layoutParams);
-
-        if (dstY > 0 && dstY <= PTR_PREPARE_HEIGHT ) {
-            ptrState = PTR_STATE_PREPARE;
-            float percent = (float)dstY / (float)PTR_PREPARE_HEIGHT;
-            pullToRefreshView.onPositionChanged(this, ptrState, percent);
-        } else if (dstY > PTR_PREPARE_HEIGHT) {
-            ptrState = PTR_STATE_LOADING;
-            float percent = (float)(dstY - PTR_PREPARE_HEIGHT) / (float)(PTR_MAX_HEIGHT - PTR_PREPARE_HEIGHT);
-            pullToRefreshView.onPositionChanged(this, ptrState, percent);
-        } else {
-            ptrState = PTR_STATE_IDLE;
-            pullToRefreshView.onPositionChanged(this, ptrState, 1.0f);
-        }
-
-
-
-//        int currY = contentView.getTop() - maxScrollY - deltaY;
-////        Log.d("getTop:", String.valueOf(contentView.getTop()));
-//        if (currY >= PTR_MAX_HEIGHT) {
-//            currY = PTR_MAX_HEIGHT;
-//        }
-//        int actualY = (int) ( decelerateInterpolator.getInterpolation((float)currY / (float)(PTR_MAX_HEIGHT) ) * (float)currY);
-//        Log.d("actualY:", String.valueOf(actualY));
-//
-//        int originalY = contentView.getTop() - maxScrollY;
-//        int lastY = (int) (decelerateInterpolator.getInterpolation((float)originalY / (float)(PTR_MAX_HEIGHT) ) * (float)originalY);
-//
-//        contentView.offsetTopAndBottom(actualY - lastY);
-
-//        int actualY = currY;
-
-//        if (actualY >= PTR_MAX_HEIGHT) {
-//            actualY = PTR_MAX_HEIGHT;
-//        }
-
-
-//        if (deltaY < 0) {
-//            contentView.offsetTopAndBottom(actualY);
-//        } else {
-//            contentView.offsetTopAndBottom(-actualY);
-//        }
-
-
-//        if (deltaY < 0) {
-//            int offset = contentView.getTop() - maxScrollY + actualY;
-//            Log.d("offset:", String.valueOf(offset));
-//            contentView.offsetTopAndBottom(offset);
-//        } else {
-//            int offset = contentView.getTop() - maxScrollY - actualY;
-//            Log.d("offset:", String.valueOf(offset));
-//            contentView.offsetTopAndBottom(offset);
-//        }
-
-
-//        Log.d("currY:", String.valueOf(currY));
-//        Log.d("actualY:", String.valueOf(actualY));
-    }
-
+    };
 }

@@ -27,7 +27,23 @@
     <com.ptmlb.ca.ahgroup.ui.HeaderViewLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="56dp">
+        android:layout_marginTop="56dp"
+        android:background="@color/colorWhite">
+
+        <com.ptmlb.ca.ahgroup.ui.PullToRefreshView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/colorWhite"/>
+
+        <com.ptmlb.ca.ahgroup.ui.TopPullToRefreshView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/colorWhite"/>
+
+        <com.ptmlb.ca.ahgroup.ui.FooterPullToRefreshView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/colorWhite"/>
 
         <LinearLayout
             android:id="@+id/collapsing_layout"
@@ -47,17 +63,12 @@
                 android:src="@drawable/headerview" />
         </LinearLayout>
 
-        <com.ptmlb.ca.ahgroup.ui.PullToRefreshView
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:background="@color/colorAccent"/>
-
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"
 
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary">
+            android:background="@color/colorWhite">
 
         </android.support.v7.widget.RecyclerView>
 

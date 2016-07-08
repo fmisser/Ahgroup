@@ -6,4 +6,6 @@
     <dimen name="pull_refresh_text_size">12dp</dimen>
     <dimen name="pull_refresh_vertical_space">16dp</dimen>
     <dimen name="pull_refresh_vertical_offset">8dp</dimen>
+    <dimen name="pull_refresh_horizontal_space">100dp</dimen>
+    <dimen name="top_pull_fresh_vertical_move_space">40dp</dimen>
 </resources>
